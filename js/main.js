@@ -54,8 +54,6 @@ const createIdGenerator = () => {
   };
 };
 
-
-
 //Функция получения случайного элемента массива
 const getRandomArrayElement = (elements) => elements[getRandomInteger(0, elements.length - 1)];
 
@@ -87,6 +85,5 @@ const generatePhoto = (_, index) => {
   };
 };
 
-const photosArray = Array.from({length: 25}, generatePhoto);
-// eslint-disable-next-line no-console
-console.log(photosArray);
+const getPhotosArray = ()=> Array.from({length: 25}, generatePhoto);
+getPhotosArray();
