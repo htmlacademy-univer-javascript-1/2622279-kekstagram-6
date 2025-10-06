@@ -1,6 +1,6 @@
-export const PHOTOS_COUNT = 25;
+const PHOTOS_COUNT = 25;
 
-export const DESCRIPTIONS = [
+const DESCRIPTIONS = [
   'Прекрасный вечер',
   'Любимое фото',
   'Летнее приключение',
@@ -10,7 +10,7 @@ export const DESCRIPTIONS = [
   'Хорошее настроение'
 ];
 
-export const MESSAGES = [
+const MESSAGES = [
   'Всё отлично!',
   'В целом всё неплохо. Но не всё.',
   'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.',
@@ -19,7 +19,7 @@ export const MESSAGES = [
   'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'
 ];
 
-export const NAMES = [
+const NAMES = [
   'Андрей',
   'Василиса',
   'Олег',
@@ -27,3 +27,5 @@ export const NAMES = [
   'Ольга',
   'Василий'
 ];
+
+export { PHOTOS_COUNT, DESCRIPTIONS, MESSAGES, NAMES };

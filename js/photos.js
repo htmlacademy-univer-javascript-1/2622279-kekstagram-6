@@ -15,7 +15,7 @@ const createUniquePhotoIds = () => {
 const photoIds = createUniquePhotoIds();
 
 //Функция генерации массива фотографий
-export const generatePhoto = (_, index) => {
+const generatePhoto = (_, index) => {
   const commentIdGenerator = createIdGenerator();
   const commentsCount = getRandomInteger(0, 30);
   const comments = Array.from({length: commentsCount}, () => generateComment(commentIdGenerator));
@@ -29,4 +29,6 @@ export const generatePhoto = (_, index) => {
   };
 };
 
-export const getPhotosArray = () => Array.from({length: PHOTOS_COUNT}, generatePhoto);
+const getPhotosArray = () => Array.from({length: PHOTOS_COUNT}, generatePhoto);
+
+export { generatePhoto, getPhotosArray };
