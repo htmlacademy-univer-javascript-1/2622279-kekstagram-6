@@ -107,17 +107,22 @@ const closeBigPicture = () => {
   document.body.classList.remove('modal-open');
 };
 
+// Обработчик нажатия Esc (ЭКСПОРТИРУЕМ ЭТУ ФУНКЦИЮ)
+const onBigPictureEscKeydown = (evt) => {
+  if (evt.key === 'Escape' && !bigPicture.classList.contains('hidden')) {
+    evt.preventDefault();
+    closeBigPicture();
+  }
+};
+
+// Добавляем обработчики событий
 cancelButton.addEventListener('click', () => {
   closeBigPicture();
 });
 
 commentsLoader.addEventListener('click', onCommentsLoaderClick);
 
-document.addEventListener('keydown', (evt) => {
-  if (evt.key === 'Escape' && !bigPicture.classList.contains('hidden')) {
-    evt.preventDefault();
-    closeBigPicture();
-  }
-});
+document.addEventListener('keydown', onBigPictureEscKeydown);
 
+// Экспортируем функции
 export { openBigPicture };
