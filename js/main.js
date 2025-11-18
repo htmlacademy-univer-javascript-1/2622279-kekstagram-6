@@ -1,5 +1,6 @@
 import { getPhotosArray } from './photos.js';
 import { renderPictures } from './pictures.js';
+import './form.js';
 
 // Генерация массива фотографий
 const photos = getPhotosArray();
