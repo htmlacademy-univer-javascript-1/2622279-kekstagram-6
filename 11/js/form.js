@@ -104,14 +104,17 @@ const onFormSubmit = (evt) => {
   if (isValid) {
     closeImageEditor();
   }
-  else {
-    const submitButton = document.querySelector('.img-upload__submit');
-    submitButton.disabled = true;
-    setTimeout(() => {
-      submitButton.disabled = false;
-    },);
-  }
 };
+
+hashtagInput.addEventListener('input', () => {
+  const submitButton = document.querySelector('.img-upload__submit');
+  submitButton.disabled = !pristine.validate();
+});
+
+commentInput.addEventListener('input', () => {
+  const submitButton = document.querySelector('.img-upload__submit');
+  submitButton.disabled = !pristine.validate();
+});
 
 pristine.addValidator(
   hashtagInput,
