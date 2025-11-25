@@ -14,6 +14,9 @@ const body = document.body;
 // Константа для комментария
 const MAX_COMMENT_LENGTH = 140;
 
+// Функция для проверки нажатия Escape
+const isEscapeKey = (evt) => evt.key === 'Escape';
+
 // Инициализация Pristine
 const pristine = new Pristine(form, {
   classTo: 'img-upload__field-wrapper',
@@ -52,7 +55,7 @@ function openImageEditor() {
 
 // ОБРАБОТЧИК ESCAPE
 function onFormEscKeydown(evt) {
-  if (evt.key === 'Escape') {
+  if (isEscapeKey(evt)) {
     if (document.activeElement === hashtagInput || document.activeElement === commentInput) {
       return;
     }
@@ -63,13 +66,13 @@ function onFormEscKeydown(evt) {
 
 // ПРЕДОТВРАЩЕНИЕ ЗАКРЫТИЯ ФОРМЫ ПРИ ФОКУСЕ НА ПОЛЯХ ВВОДА
 const onHashtagInputKeydown = (evt) => {
-  if (evt.key === 'Escape') {
+  if (isEscapeKey(evt)) {
     evt.stopPropagation();
   }
 };
 
 const onCommentInputKeydown = (evt) => {
-  if (evt.key === 'Escape') {
+  if (isEscapeKey(evt)) {
     evt.stopPropagation();
   }
 };
@@ -92,6 +95,7 @@ const onCancelButtonClick = () => {
   closeImageEditor();
 };
 
+// ОБРАБОТЧИК ОТПРАВКИ ФОРМЫ
 const onFormSubmit = (evt) => {
   evt.preventDefault();
 
@@ -99,6 +103,13 @@ const onFormSubmit = (evt) => {
 
   if (isValid) {
     closeImageEditor();
+  }
+  else {
+    const submitButton = document.querySelector('.img-upload__submit');
+    submitButton.disabled = true;
+    setTimeout(() => {
+      submitButton.disabled = false;
+    },);
   }
 };
 
