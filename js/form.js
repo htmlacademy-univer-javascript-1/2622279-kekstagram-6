@@ -1,4 +1,6 @@
 import { validateHashtags, getHashtagErrorMessage } from './hashtags.js';
+import { isEscapeKey } from './util.js';
+import { initImageEditor, resetImageEditor } from './image-editor.js';
 
 const Pristine = window.Pristine;
 
@@ -10,12 +12,10 @@ const cancelButton = document.querySelector('.img-upload__cancel');
 const hashtagInput = document.querySelector('.text__hashtags');
 const commentInput = document.querySelector('.text__description');
 const body = document.body;
+const submitButton = document.querySelector('.img-upload__submit');
 
-// Константа для комментария
+// Константы
 const MAX_COMMENT_LENGTH = 140;
-
-// Функция для проверки нажатия Escape
-const isEscapeKey = (evt) => evt.key === 'Escape';
 
 // Инициализация Pristine
 const pristine = new Pristine(form, {
@@ -27,6 +27,11 @@ const pristine = new Pristine(form, {
 // ВАЛИДАЦИЯ КОММЕНТАРИЯ
 const validateComment = (value) => value.length <= MAX_COMMENT_LENGTH;
 
+// Функция для обновления состояния кнопки
+const updateSubmitButton = () => {
+  submitButton.disabled = !pristine.validate();
+};
+
 // СБРОС ПОЛЯ ВЫБОРА ФАЙЛА
 const resetFileInput = () => {
   fileInput.value = '';
@@ -36,6 +41,8 @@ const resetFileInput = () => {
 const resetForm = () => {
   form.reset();
   pristine.reset();
+  resetImageEditor();
+  submitButton.disabled = false;
 };
 
 // ЗАКРЫТИЕ ФОРМЫ
@@ -51,9 +58,13 @@ function openImageEditor() {
   overlay.classList.remove('hidden');
   body.classList.add('modal-open');
   document.addEventListener('keydown', onFormEscKeydown);
+
+  // Инициализируем редактор изображения
+  initImageEditor();
+  updateSubmitButton();
 }
 
-// ОБРАБОТЧИК ESCAPE
+// ОБРАБОТЧИК ESCAPE ДЛЯ ФОРМЫ
 function onFormEscKeydown(evt) {
   if (isEscapeKey(evt)) {
     if (document.activeElement === hashtagInput || document.activeElement === commentInput) {
@@ -106,16 +117,7 @@ const onFormSubmit = (evt) => {
   }
 };
 
-hashtagInput.addEventListener('input', () => {
-  const submitButton = document.querySelector('.img-upload__submit');
-  submitButton.disabled = !pristine.validate();
-});
-
-commentInput.addEventListener('input', () => {
-  const submitButton = document.querySelector('.img-upload__submit');
-  submitButton.disabled = !pristine.validate();
-});
-
+// ДОБАВЛЕНИЕ ВАЛИДАТОРОВ
 pristine.addValidator(
   hashtagInput,
   validateHashtags,
@@ -128,16 +130,20 @@ pristine.addValidator(
   `Длина комментария не должна превышать ${MAX_COMMENT_LENGTH} символов`
 );
 
+// ВАЛИДАЦИЯ ПРИ ВВОДЕ
 const setupRealTimeValidation = () => {
   hashtagInput.addEventListener('input', () => {
     pristine.validate(hashtagInput);
+    updateSubmitButton();
   });
 
   commentInput.addEventListener('input', () => {
     pristine.validate(commentInput);
+    updateSubmitButton();
   });
 };
 
+// ДОБАВЛЕНИЕ ОБРАБОТЧИКОВ СОБЫТИЙ
 fileInput.addEventListener('change', onFileInputChange);
 cancelButton.addEventListener('click', onCancelButtonClick);
 form.addEventListener('submit', onFormSubmit);
@@ -147,4 +153,4 @@ commentInput.addEventListener('keydown', onCommentInputKeydown);
 
 setupRealTimeValidation();
 
-export { closeImageEditor, resetForm };
+export { closeImageEditor, resetForm, isEscapeKey };
