@@ -1,3 +1,5 @@
+import { isEscapeKey } from './util.js';
+
 const COMMENTS_PER_PORTION = 5;
 
 const bigPicture = document.querySelector('.big-picture');
@@ -107,9 +109,9 @@ const closeBigPicture = () => {
   document.body.classList.remove('modal-open');
 };
 
-// Обработчик нажатия Esc (ЭКСПОРТИРУЕМ ЭТУ ФУНКЦИЮ)
+// Обработчик нажатия Esc
 const onBigPictureEscKeydown = (evt) => {
-  if (evt.key === 'Escape' && !bigPicture.classList.contains('hidden')) {
+  if (isEscapeKey && !bigPicture.classList.contains('hidden')) {
     evt.preventDefault();
     closeBigPicture();
   }
