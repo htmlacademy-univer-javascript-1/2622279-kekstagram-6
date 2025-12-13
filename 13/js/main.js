@@ -1,0 +1,35 @@
+import { loadData } from './fetch.js';
+import { renderPictures } from './pictures.js';
+import './form.js';
+
+let photos = [];
+
+// Функция успешной загрузки
+const onSuccess = (data) => {
+  photos = data.slice();
+  renderPictures(photos);
+};
+
+// Функция ошибки загрузки
+const onFail = () => {
+  const messageAlert = document.createElement('div');
+  messageAlert.style.position = 'fixed';
+  messageAlert.style.top = '20px';
+  messageAlert.style.left = '50%';
+  messageAlert.style.transform = 'translateX(-50%)';
+  messageAlert.style.backgroundColor = '#ee3939ff';
+  messageAlert.style.color = 'white';
+  messageAlert.style.padding = '30px 50px';
+  messageAlert.style.borderRadius = '8px';
+  messageAlert.style.zIndex = '10000';
+  messageAlert.style.textAlign = 'center';
+  messageAlert.style.fontSize = '20px';
+  messageAlert.style.fontFamily = 'Arial, sans-serif';
+  messageAlert.textContent = 'Ошибка загрузки фотографий!';
+  document.body.append(messageAlert);
+};
+
+// Загружаем данные с сервера
+loadData(onSuccess, onFail);
+
+export { photos };
