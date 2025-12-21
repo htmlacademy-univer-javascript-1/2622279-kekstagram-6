@@ -2,6 +2,7 @@ import { validateHashtags, getHashtagErrorMessage } from './hashtags.js';
 import { isEscapeKey } from './util.js';
 import { initImageEditor, resetImageEditor } from './image-editor.js';
 import { uploadData } from './fetch.js';
+import { showSelectedImage, resetPreview } from './preview.js';
 
 const Pristine = window.Pristine;
 
@@ -78,6 +79,7 @@ const resetForm = () => {
   resetImageEditor();
   unblockSubmitButton();
   resetFileInput();
+  resetPreview();
 };
 
 // ЗАКРЫТИЕ ФОРМЫ
@@ -129,7 +131,7 @@ const onFileInputChange = () => {
   const file = fileInput.files[0];
 
   if (file) {
-    if (file.type.startsWith('image/')) {
+    if (showSelectedImage(file)) {
       openImageEditor();
     } else {
       resetFileInput();
