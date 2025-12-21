@@ -1,5 +1,6 @@
 import { loadData } from './fetch.js';
 import { renderPictures } from './pictures.js';
+import './filters.js';
 import './form.js';
 
 let photos = [];
@@ -8,6 +9,7 @@ let photos = [];
 const onSuccess = (data) => {
   photos = data.slice();
   renderPictures(photos);
+  document.querySelector('.img-filters').classList.remove('img-filters--inactive');
 };
 
 // Функция ошибки загрузки
@@ -32,4 +34,6 @@ const onFail = () => {
 // Загружаем данные с сервера
 loadData(onSuccess, onFail);
 
-export { photos };
+const getPhotos = () => photos.slice();
+
+export { getPhotos };
