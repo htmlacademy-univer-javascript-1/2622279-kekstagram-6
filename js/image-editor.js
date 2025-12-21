@@ -87,6 +87,10 @@ const initSlider = () => {
     return;
   }
 
+  if (effectLevelSlider.noUiSlider) {
+    return;
+  }
+
   // Создаем слайдер
   noUiSlider.create(effectLevelSlider, {
     range: {
