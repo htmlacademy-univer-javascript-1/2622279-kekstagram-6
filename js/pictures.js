@@ -27,4 +27,12 @@ const renderPictures = (objects)=>{
   pictures.appendChild(fragment);
 };
 
-export {renderPictures};
+const photos = pictures.getElementsByClassName('picture');
+
+const removePictures = ()=>{
+  if (photos){
+    [...photos].forEach((photo) => photo.remove());
+  }
+};
+
+export {renderPictures, removePictures};
