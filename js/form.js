@@ -29,42 +29,42 @@ const updateErrorUI = () => {
   // Хэштеги
   const hashtagWrapper = hashtagInput.closest('.img-upload__field-wrapper');
   if (hashtagWrapper) {
+    // Исправление: использование метода toggle с булевым значением
+    hashtagWrapper.classList.toggle('img-upload__field-wrapper--error', !!hashtagError);
+
+    let errorElement = hashtagWrapper.querySelector('.pristine-error');
+
     if (hashtagError) {
-      hashtagWrapper.classList.add('img-upload__field-wrapper--error');
-      let errorElement = hashtagWrapper.querySelector('.pristine-error');
-      if (!errorElement) {
-        errorElement = document.createElement('div');
+      // Использование тернарного оператора с присваиванием
+      errorElement = errorElement || document.createElement('div');
+      if (!hashtagWrapper.querySelector('.pristine-error')) {
         errorElement.className = 'pristine-error';
         hashtagWrapper.appendChild(errorElement);
       }
       errorElement.textContent = hashtagError;
-    } else {
-      hashtagWrapper.classList.remove('img-upload__field-wrapper--error');
-      const errorElement = hashtagWrapper.querySelector('.pristine-error');
-      if (errorElement) {
-        errorElement.remove();
-      }
+    } else if (errorElement) {
+      errorElement.remove();
     }
   }
 
   // Комментарий
   const commentWrapper = commentInput.closest('.img-upload__field-wrapper');
   if (commentWrapper) {
+    // Исправление: использование метода toggle с булевым значением
+    commentWrapper.classList.toggle('img-upload__field-wrapper--error', !!commentError);
+
+    let errorElement = commentWrapper.querySelector('.pristine-error');
+
     if (commentError) {
-      commentWrapper.classList.add('img-upload__field-wrapper--error');
-      let errorElement = commentWrapper.querySelector('.pristine-error');
-      if (!errorElement) {
-        errorElement = document.createElement('div');
+      // Использование тернарного оператора с присваиванием
+      errorElement = errorElement || document.createElement('div');
+      if (!commentWrapper.querySelector('.pristine-error')) {
         errorElement.className = 'pristine-error';
         commentWrapper.appendChild(errorElement);
       }
       errorElement.textContent = commentError;
-    } else {
-      commentWrapper.classList.remove('img-upload__field-wrapper--error');
-      const errorElement = commentWrapper.querySelector('.pristine-error');
-      if (errorElement) {
-        errorElement.remove();
-      }
+    } else if (errorElement) {
+      errorElement.remove();
     }
   }
 };
@@ -78,15 +78,13 @@ const updateSubmitButton = () => {
 
 // Обновление ошибок и UI
 const updateValidation = () => {
-  // Валидация хэштегов
+  // Валидация хэштегов с тернарным оператором
   const hashtagValue = hashtagInput.value;
-  const isHashtagValid = validateHashtags(hashtagValue);
-  hashtagError = isHashtagValid ? '' : getHashtagErrorMessage(hashtagValue);
+  hashtagError = validateHashtags(hashtagValue) ? '' : getHashtagErrorMessage(hashtagValue);
 
-  // Валидация комментария
+  // Валидация комментария с тернарным оператором
   const commentValue = commentInput.value;
-  const isCommentValid = validateComment(commentValue);
-  commentError = isCommentValid ? '' : `Длина комментария не должна превышать ${MAX_COMMENT_LENGTH} символов`;
+  commentError = validateComment(commentValue) ? '' : `Длина комментария не должна превышать ${MAX_COMMENT_LENGTH} символов`;
 
   // Обновляем UI
   updateErrorUI();
@@ -160,10 +158,10 @@ const onFileInputChange = () => {
     return;
   }
 
+  // Вариант 1: Использовать if/else вместо тернарного оператора
   if (showSelectedImage(file)) {
     openImageEditor();
   } else {
-    // Очищаем input, если файл не подходит
     fileInput.value = '';
   }
 };
@@ -251,15 +249,13 @@ const onFormSubmit = (evt) => {
   // Проверяем перед отправкой
   updateValidation();
 
+  // Использование тернарного оператора
   if (hashtagError || commentError) {
-    // Показываем ошибки, но не отправляем
     updateErrorUI();
-    return;
+  } else {
+    blockSubmitButton();
+    uploadData(onFormSuccess, onFormError, 'POST', new FormData(form));
   }
-
-  blockSubmitButton();
-  const formData = new FormData(form);
-  uploadData(onFormSuccess, onFormError, 'POST', formData);
 };
 
 // Слушатели событий для валидации
@@ -290,4 +286,4 @@ commentInput.addEventListener('keydown', (evt) => {
 });
 
 // Экспорты
-export { closeImageEditor, resetForm, isEscapeKey };
+export { closeImageEditor, resetForm };

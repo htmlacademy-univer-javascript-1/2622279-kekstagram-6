@@ -1,116 +1,66 @@
-// Константы для хэштегов
 const MAX_HASHTAGS_COUNT = 5;
 const MAX_HASHTAG_LENGTH = 20;
+const HASHTAG_CONTENT_PATTERN = /^[A-Za-zА-Яа-яЁё0-9]+$/;
 
-// ВАЛИДАЦИЯ ХЭШ-ТЕГОВ
-const validateHashtags = (value) => {
-  // Убираем пробелы в начале и конце
-  const trimmedValue = value.trim();
-  // Если поле пустое - валидно (хэш-теги необязательны)
-  if (trimmedValue === '') {
-    return true;
+const getHashtagsArray = (value) =>
+  value.trim() === '' ? [] : value.trim().split(/\s+/).filter((tag) => tag !== '');
+
+const validateSingleHashtag = (hashtag, seen) => {
+  const lowerCaseTag = hashtag.toLowerCase();
+
+  if (!hashtag.startsWith('#')) {
+    return { isValid: false, error: 'Хэш-тег должен начинаться с символа #' };
   }
 
-  // Разбиваем на хэштеги, убираем пустые строки
-  const hashtags = trimmedValue.split(/\s+/).filter((tag) => tag !== '');
-  // 1. Не больше пяти хэштегов
+  if (hashtag === '#') {
+    return { isValid: false, error: 'Хэш-тег не может состоять только из решётки' };
+  }
+
+  if (hashtag.length > MAX_HASHTAG_LENGTH) {
+    return { isValid: false, error: `Максимальная длина хэш-тега - ${MAX_HASHTAG_LENGTH} символов (включая #)` };
+  }
+
+  const content = hashtag.substring(1);
+  if (content.length === 0) {
+    return { isValid: false, error: 'Хэш-тег не может состоять только из решётки' };
+  }
+
+  if (!HASHTAG_CONTENT_PATTERN.test(content)) {
+    return { isValid: false, error: 'Хэш-тег должен содержать только буквы и цифры' };
+  }
+
+  if (seen.has(lowerCaseTag)) {
+    return { isValid: false, error: 'Хэш-теги не должны повторяться' };
+  }
+
+  seen.add(lowerCaseTag);
+  return { isValid: true, error: '' };
+};
+
+const validateHashtags = (value) => {
+  const hashtags = getHashtagsArray(value);
   if (hashtags.length > MAX_HASHTAGS_COUNT) {
     return false;
   }
 
   const seen = new Set();
-
-  for (const hashtag of hashtags) {
-    const lowerCaseTag = hashtag.toLowerCase();
-
-    // 2. Хэштег должен начинаться с символа #
-    if (!hashtag.startsWith('#')) {
-      return false;
-    }
-
-    // 3. Хэштег не может состоять только из одной решётки
-    if (hashtag === '#') {
-      return false;
-    }
-
-    // 4. Максимальная длина одного хэш-тега 20 символов, включая решётку
-    if (hashtag.length > MAX_HASHTAG_LENGTH) {
-      return false;
-    }
-
-    // 5. Хэштег не может содержать спецсимволы, пунктуацию, эмодзи
-    // Разрешаем только: буквы (латиница и кириллица) и цифры
-    // Используем регулярное выражение для проверки
-    const content = hashtag.substring(1); // Все что после #
-    // Проверяем что после # что-то есть
-    if (content.length === 0) {
-      return false;
-    }
-    // Регулярное выражение: только буквы и цифры
-    // [A-Za-zА-Яа-яЁё] - латиница + кириллица (включая Ёё)
-    // [0-9] - цифры
-    if (!/^[A-Za-zА-Яа-яЁё0-9]+$/.test(content)) {
-      return false;
-    }
-
-    // 6. Один и тот же хэш-тег не может быть использован дважды (регистр неважен)
-    if (seen.has(lowerCaseTag)) {
-      return false;
-    }
-    seen.add(lowerCaseTag);
-  }
-
-  return true;
+  return hashtags.every((hashtag) => validateSingleHashtag(hashtag, seen).isValid);
 };
 
-// СООБЩЕНИЯ ОБ ОШИБКАХ ДЛЯ ХЭШ-ТЕГОВ
 const getHashtagErrorMessage = (value) => {
-  const trimmedValue = value.trim();
-  // Если поле пустое - нет ошибки
-  if (trimmedValue === '') {
-    return '';
-  }
+  const hashtags = getHashtagsArray(value);
 
-  const hashtags = trimmedValue.split(/\s+/).filter((tag) => tag !== '');
-  const seen = new Set();
-
-  // 1. Не больше пяти хэштегов
   if (hashtags.length > MAX_HASHTAGS_COUNT) {
     return `Не более ${MAX_HASHTAGS_COUNT} хэш-тегов`;
   }
 
+  const seen = new Set();
+
   for (const hashtag of hashtags) {
-    const lowerCaseTag = hashtag.toLowerCase();
-
-    // 2. Хэштег должен начинаться с символа #
-    if (!hashtag.startsWith('#')) {
-      return 'Хэш-тег должен начинаться с символа #';
+    const result = validateSingleHashtag(hashtag, seen);
+    if (!result.isValid) {
+      return result.error;
     }
-
-    // 3. Хэштег не может состоять только из одной решётки
-    if (hashtag === '#') {
-      return 'Хэш-тег не может состоять только из решётки';
-    }
-
-    // 4. Максимальная длина одного хэш-тега 20 символов, включая решётку
-    if (hashtag.length > MAX_HASHTAG_LENGTH) {
-      return `Максимальная длина хэш-тега - ${MAX_HASHTAG_LENGTH} символов (включая #)`;
-    }
-
-    // 5. Хэштег не может содержать спецсимволы, пунктуацию, эмодзи
-    const content = hashtag.substring(1);
-    if (content.length === 0) {
-      return 'Хэш-тег не может состоять только из решётки';
-    }
-    if (!/^[A-Za-zА-Яа-яЁё0-9]+$/.test(content)) {
-      return 'Хэш-тег должен содержать только буквы и цифры';
-    }
-
-    // 6. Один и тот же хэш-тег не может быть использован дважды
-    if (seen.has(lowerCaseTag)) {
-      return 'Хэш-теги не должны повторяться';
-    }
-    seen.add(lowerCaseTag);
   }
 
   return '';

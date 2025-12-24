@@ -5,13 +5,13 @@ const isEscapeKey = (evt) => evt.key === 'Escape';
 
 // Функция для устранения дребезга
 const debounce = (cb) => {
-  let lustTimeout = null;
+  let lastTimeout = null;
 
   return (...rest) => {
-    if (lustTimeout){
-      window.clearTimeout(lustTimeout);
+    if (lastTimeout){
+      window.clearTimeout(lastTimeout);
     }
-    lustTimeout = window.setTimeout(()=>{
+    lastTimeout = window.setTimeout(()=>{
       cb(...rest);
     }, DELAY);
   };
