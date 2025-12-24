@@ -29,13 +29,11 @@ const updateErrorUI = () => {
   // Хэштеги
   const hashtagWrapper = hashtagInput.closest('.img-upload__field-wrapper');
   if (hashtagWrapper) {
-    // Исправление: использование метода toggle с булевым значением
     hashtagWrapper.classList.toggle('img-upload__field-wrapper--error', !!hashtagError);
 
     let errorElement = hashtagWrapper.querySelector('.pristine-error');
 
     if (hashtagError) {
-      // Использование тернарного оператора с присваиванием
       errorElement = errorElement || document.createElement('div');
       if (!hashtagWrapper.querySelector('.pristine-error')) {
         errorElement.className = 'pristine-error';
@@ -50,13 +48,11 @@ const updateErrorUI = () => {
   // Комментарий
   const commentWrapper = commentInput.closest('.img-upload__field-wrapper');
   if (commentWrapper) {
-    // Исправление: использование метода toggle с булевым значением
     commentWrapper.classList.toggle('img-upload__field-wrapper--error', !!commentError);
 
     let errorElement = commentWrapper.querySelector('.pristine-error');
 
     if (commentError) {
-      // Использование тернарного оператора с присваиванием
       errorElement = errorElement || document.createElement('div');
       if (!commentWrapper.querySelector('.pristine-error')) {
         errorElement.className = 'pristine-error';
@@ -78,11 +74,11 @@ const updateSubmitButton = () => {
 
 // Обновление ошибок и UI
 const updateValidation = () => {
-  // Валидация хэштегов с тернарным оператором
+  // Валидация хэштегов
   const hashtagValue = hashtagInput.value;
   hashtagError = validateHashtags(hashtagValue) ? '' : getHashtagErrorMessage(hashtagValue);
 
-  // Валидация комментария с тернарным оператором
+  // Валидация комментария
   const commentValue = commentInput.value;
   commentError = validateComment(commentValue) ? '' : `Длина комментария не должна превышать ${MAX_COMMENT_LENGTH} символов`;
 
@@ -98,7 +94,7 @@ const blockSubmitButton = () => {
 };
 
 const unblockSubmitButton = () => {
-  updateSubmitButton(); // Восстанавливаем состояние на основе валидации
+  updateSubmitButton();
 };
 
 // Сброс формы
@@ -158,7 +154,6 @@ const onFileInputChange = () => {
     return;
   }
 
-  // Вариант 1: Использовать if/else вместо тернарного оператора
   if (showSelectedImage(file)) {
     openImageEditor();
   } else {
@@ -249,7 +244,6 @@ const onFormSubmit = (evt) => {
   // Проверяем перед отправкой
   updateValidation();
 
-  // Использование тернарного оператора
   if (hashtagError || commentError) {
     updateErrorUI();
   } else {
