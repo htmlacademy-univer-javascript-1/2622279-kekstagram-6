@@ -13,7 +13,7 @@ const isButton = (evt) => evt.target.tagName === 'BUTTON';
 
 // Доступные фильтры
 const availableFilters = {
-  'filter-default': () => getPhotos(), // Исправлено: getPhotos() вместо getPhotos.slice()
+  'filter-default': () => getPhotos(),
   'filter-random': () => {
     const allPhotos = getPhotos();
     const shuffled = shuffleArray(allPhotos);
@@ -23,7 +23,7 @@ const availableFilters = {
   )
 };
 
-// Обработчик клика по форме фильтров (с debounce)
+// Обработчик клика по форме фильтров
 const onImgFilterFormClick = debounce((evt) => {
   if (isButton(evt) && availableFilters[evt.target.id]) {
     // Удаляем старые фотографии
@@ -33,7 +33,7 @@ const onImgFilterFormClick = debounce((evt) => {
   }
 });
 
-// Обработчик клика по кнопке (активация)
+// Обработчик клика по кнопке
 const onButtonClick = (evt) => {
   if (isButton(evt) && availableFilters[evt.target.id]) {
     const selectedButton = imgFiltersForm.querySelector(`.${ACTIVE_CLASS}`);
