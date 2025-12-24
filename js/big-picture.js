@@ -48,7 +48,17 @@ const renderComments = () => {
 
   commentsShown += commentsToShow.length;
 
-  commentCountElement.innerHTML = `${commentsShown} из <span class="comments-count">${currentComments.length}</span> комментариев`;
+  // Обновляем только текстовые значения, не меняя структуру
+  const shownCountElement = commentCountElement.querySelector('.social__comment-shown-count');
+  const totalCountElement = commentCountElement.querySelector('.social__comment-total-count');
+
+  if (shownCountElement) {
+    shownCountElement.textContent = commentsShown;
+  }
+
+  if (totalCountElement) {
+    totalCountElement.textContent = currentComments.length;
+  }
 
   if (commentsShown >= currentComments.length) {
     commentsLoader.classList.add('hidden');
@@ -61,20 +71,11 @@ const onCommentsLoaderClick = () => {
   renderComments();
 };
 
-// Функция для сброса состояния комментариев
 const resetComments = () => {
   socialComments.innerHTML = '';
   commentsShown = 0;
   currentComments = [];
   commentsLoader.classList.remove('hidden');
-};
-
-const checkCommentsLoaderVisibility = () => {
-  if (currentComments.length <= COMMENTS_PER_PORTION) {
-    commentsLoader.classList.add('hidden');
-  } else {
-    commentsLoader.classList.remove('hidden');
-  }
 };
 
 const openBigPicture = (photo) => {
@@ -88,36 +89,47 @@ const openBigPicture = (photo) => {
   commentsCount.textContent = comments.length;
   socialCaption.textContent = description;
 
-  // Сохраняем комментарии и отображаем первую порцию
   currentComments = comments;
+
+  // Сначала обновляем счетчики
+  const shownCountElement = commentCountElement.querySelector('.social__comment-shown-count');
+  const totalCountElement = commentCountElement.querySelector('.social__comment-total-count');
+
+  const initialShown = Math.min(COMMENTS_PER_PORTION, comments.length);
+
+  if (shownCountElement) {
+    shownCountElement.textContent = initialShown;
+  }
+
+  if (totalCountElement) {
+    totalCountElement.textContent = comments.length;
+  }
+
+  // Затем рендерим комментарии
   renderComments();
 
-
-  commentCountElement.classList.remove('hidden');
-  commentsLoader.classList.remove('hidden');
-
-  // Проверяем нужно ли показывать кнопку "Загрузить ещё"
-  checkCommentsLoaderVisibility();
+  if (comments.length <= COMMENTS_PER_PORTION) {
+    commentsLoader.classList.add('hidden');
+  } else {
+    commentsLoader.classList.remove('hidden');
+  }
 
   bigPicture.classList.remove('hidden');
   document.body.classList.add('modal-open');
 };
 
-// Функция для закрытия полноразмерного изображения
 const closeBigPicture = () => {
   bigPicture.classList.add('hidden');
   document.body.classList.remove('modal-open');
 };
 
-// Обработчик нажатия Esc
 const onBigPictureEscKeydown = (evt) => {
-  if (isEscapeKey && !bigPicture.classList.contains('hidden')) {
+  if (isEscapeKey(evt) && !bigPicture.classList.contains('hidden')) {
     evt.preventDefault();
     closeBigPicture();
   }
 };
 
-// Добавляем обработчики событий
 cancelButton.addEventListener('click', () => {
   closeBigPicture();
 });
@@ -126,5 +138,4 @@ commentsLoader.addEventListener('click', onCommentsLoaderClick);
 
 document.addEventListener('keydown', onBigPictureEscKeydown);
 
-// Экспортируем функции
 export { openBigPicture };

@@ -1,10 +1,10 @@
-const Urls = {
+const URLS = {
   GET: 'https://29.javascript.htmlacademy.pro/kekstagram/data',
-  POST: 'https://29.javascript.htmlacademy.pro/kekstagram',
+  POST: 'https://29.javascript.htmlacademy.pro/kekstagram/',
 };
 
 const sendRequest = (onSuccess, onError, method, body) => {
-  fetch(Urls[method], {
+  fetch(URLS[method], {
     method: method,
     body: body,
   })
