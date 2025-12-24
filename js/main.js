@@ -15,6 +15,7 @@ const onSuccess = (data) => {
 // Функция ошибки загрузки
 const onFail = () => {
   const messageAlert = document.createElement('div');
+  messageAlert.className = 'data-error';
   messageAlert.style.position = 'fixed';
   messageAlert.style.top = '20px';
   messageAlert.style.left = '50%';

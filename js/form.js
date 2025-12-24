@@ -4,8 +4,6 @@ import { initImageEditor, resetImageEditor } from './image-editor.js';
 import { uploadData } from './fetch.js';
 import { showSelectedImage, resetPreview } from './preview.js';
 
-const Pristine = window.Pristine;
-
 // Элементы DOM
 const form = document.querySelector('.img-upload__form');
 const fileInput = document.querySelector('.img-upload__input');
@@ -19,67 +17,109 @@ const submitButton = document.querySelector('.img-upload__submit');
 // Константы
 const MAX_COMMENT_LENGTH = 140;
 
-const successTemplate = document.querySelector('#success');
-const errorTemplate = document.querySelector('#error');
-
-let closeSuccessMessage = () => {};
-let closeErrorMessage = () => {};
-
-// Обработчики ESC для сообщений
-const onSuccessEscKeydown = (evt) => {
-  if (isEscapeKey(evt)) {
-    evt.preventDefault();
-    closeSuccessMessage();
-  }
-};
-
-const onErrorEscKeydown = (evt) => {
-  if (isEscapeKey(evt)) {
-    evt.preventDefault();
-    closeErrorMessage();
-  }
-};
-
-// Инициализация Pristine
-const pristine = new Pristine(form, {
-  classTo: 'img-upload__field-wrapper',
-  errorTextParent: 'img-upload__field-wrapper',
-  errorTextClass: 'img-upload__field-wrapper--error',
-});
+// Храним текущие ошибки
+let hashtagError = '';
+let commentError = '';
 
 // ВАЛИДАЦИЯ КОММЕНТАРИЯ
 const validateComment = (value) => value.length <= MAX_COMMENT_LENGTH;
 
-// Функция для обновления состояния кнопки
-const updateSubmitButton = () => {
-  submitButton.disabled = !pristine.validate();
+// Обновление отображения ошибок
+const updateErrorUI = () => {
+  // Хэштеги
+  const hashtagWrapper = hashtagInput.closest('.img-upload__field-wrapper');
+  if (hashtagWrapper) {
+    if (hashtagError) {
+      hashtagWrapper.classList.add('img-upload__field-wrapper--error');
+      let errorElement = hashtagWrapper.querySelector('.pristine-error');
+      if (!errorElement) {
+        errorElement = document.createElement('div');
+        errorElement.className = 'pristine-error';
+        hashtagWrapper.appendChild(errorElement);
+      }
+      errorElement.textContent = hashtagError;
+    } else {
+      hashtagWrapper.classList.remove('img-upload__field-wrapper--error');
+      const errorElement = hashtagWrapper.querySelector('.pristine-error');
+      if (errorElement) {
+        errorElement.remove();
+      }
+    }
+  }
+
+  // Комментарий
+  const commentWrapper = commentInput.closest('.img-upload__field-wrapper');
+  if (commentWrapper) {
+    if (commentError) {
+      commentWrapper.classList.add('img-upload__field-wrapper--error');
+      let errorElement = commentWrapper.querySelector('.pristine-error');
+      if (!errorElement) {
+        errorElement = document.createElement('div');
+        errorElement.className = 'pristine-error';
+        commentWrapper.appendChild(errorElement);
+      }
+      errorElement.textContent = commentError;
+    } else {
+      commentWrapper.classList.remove('img-upload__field-wrapper--error');
+      const errorElement = commentWrapper.querySelector('.pristine-error');
+      if (errorElement) {
+        errorElement.remove();
+      }
+    }
+  }
 };
 
-// Блокировка/разблокировка кнопки отправки
+// Обновление кнопки отправки
+const updateSubmitButton = () => {
+  const isValid = !hashtagError && !commentError;
+  submitButton.disabled = !isValid;
+  submitButton.textContent = 'Опубликовать';
+};
+
+// Обновление ошибок и UI
+const updateValidation = () => {
+  // Валидация хэштегов
+  const hashtagValue = hashtagInput.value;
+  const isHashtagValid = validateHashtags(hashtagValue);
+  hashtagError = isHashtagValid ? '' : getHashtagErrorMessage(hashtagValue);
+
+  // Валидация комментария
+  const commentValue = commentInput.value;
+  const isCommentValid = validateComment(commentValue);
+  commentError = isCommentValid ? '' : `Длина комментария не должна превышать ${MAX_COMMENT_LENGTH} символов`;
+
+  // Обновляем UI
+  updateErrorUI();
+  updateSubmitButton();
+};
+
+// Блокировка кнопки при отправке
 const blockSubmitButton = () => {
   submitButton.disabled = true;
   submitButton.textContent = 'Отправляется...';
 };
 
 const unblockSubmitButton = () => {
-  submitButton.disabled = false;
-  submitButton.textContent = 'Опубликовать';
-  updateSubmitButton();
+  updateSubmitButton(); // Восстанавливаем состояние на основе валидации
 };
 
-// СБРОС ПОЛЯ ВЫБОРА ФАЙЛА
-const resetFileInput = () => {
-  fileInput.value = '';
-};
-
-// ПОЛНЫЙ СБРОС ФОРМЫ
+// Сброс формы
 const resetForm = () => {
   form.reset();
-  pristine.reset();
   resetImageEditor();
+
+  // Сбрасываем состояния полей
+  hashtagInput.disabled = false;
+  commentInput.disabled = false;
+
   unblockSubmitButton();
-  resetFileInput();
   resetPreview();
+
+  // Сбрасываем ошибки
+  hashtagError = '';
+  commentError = '';
+  updateErrorUI();
+  updateSubmitButton();
 };
 
 // ЗАКРЫТИЕ ФОРМЫ
@@ -113,168 +153,141 @@ function onFormEscKeydown(evt) {
   }
 }
 
-// ПРЕДОТВРАЩЕНИЕ ЗАКРЫТИЯ ФОРМЫ ПРИ ФОКУСЕ НА ПОЛЯХ ВВОДА
-const onHashtagInputKeydown = (evt) => {
-  if (isEscapeKey(evt)) {
-    evt.stopPropagation();
-  }
-};
-
-const onCommentInputKeydown = (evt) => {
-  if (isEscapeKey(evt)) {
-    evt.stopPropagation();
-  }
-};
-
-// ОБРАБОТЧИК ИЗМЕНЕНИЯ ПОЛЯ ВЫБОРА ФАЙЛА
+// Обработчик выбора файла
 const onFileInputChange = () => {
   const file = fileInput.files[0];
+  if (!file) {
+    return;
+  }
 
-  if (file) {
-    if (showSelectedImage(file)) {
-      openImageEditor();
-    } else {
-      resetFileInput();
-    }
+  if (showSelectedImage(file)) {
+    openImageEditor();
+  } else {
+    // Очищаем input, если файл не подходит
+    fileInput.value = '';
   }
 };
 
-// ОБРАБОТЧИК КЛИКА ПО КНОПКЕ ОТМЕНЫ
-const onCancelButtonClick = () => {
-  closeImageEditor();
-};
-
-// ПОКАЗАТЬ СООБЩЕНИЕ ОБ УСПЕХЕ
+// Показать сообщение об успехе
 const showSuccessMessage = () => {
-  const successElement = successTemplate.content.cloneNode(true);
-  const successSection = successElement.querySelector('.success');
+  const template = document.querySelector('#success').content.cloneNode(true);
+  const message = template.querySelector('.success');
+  message.style.zIndex = '10000';
+  document.body.appendChild(message);
 
-  successSection.style.cssText = 'position: fixed; z-index: 10001; top: 0; left: 0; width: 100%; height: 100%;';
-
-  document.body.append(successSection);
-
-  const successButton = successSection.querySelector('.success__button');
-
-  closeSuccessMessage = () => {
-    successSection.remove();
-    document.removeEventListener('keydown', onSuccessEscKeydown);
-  };
-
-  // Обработчик клика на кнопку
-  successButton.addEventListener('click', closeSuccessMessage);
-
-  // Обработчик клика на фон (за пределами блока с сообщением)
-  successSection.addEventListener('click', (evt) => {
-    if (!evt.target.closest('.success__inner')) {
-      closeSuccessMessage();
-    }
-  });
-
-  // Обработчик ESC
-  document.addEventListener('keydown', onSuccessEscKeydown);
-};
-
-// ПОКАЗАТЬ СООБЩЕНИЕ ОБ ОШИБКЕ
-const showErrorMessage = () => {
-  const errorElement = errorTemplate.content.cloneNode(true);
-  const errorSection = errorElement.querySelector('.error');
-
-  errorSection.style.cssText = 'position: fixed; z-index: 10001; top: 0; left: 0; width: 100%; height: 100%;';
-
-  document.body.append(errorSection);
-
-  const errorButton = errorSection.querySelector('.error__button');
-
-  closeErrorMessage = () => {
-    errorSection.remove();
-    document.removeEventListener('keydown', onErrorEscKeydown);
+  const close = () => {
+    message.remove();
+    // eslint-disable-next-line no-use-before-define
+    document.removeEventListener('keydown', onEsc);
+    // Возвращаем обработчик ESC для формы
     document.addEventListener('keydown', onFormEscKeydown);
   };
 
-  // Временно отключаем обработчик ESC для формы
-  document.removeEventListener('keydown', onFormEscKeydown);
+  const onEsc = (evt) => {
+    if (isEscapeKey(evt)) {
+      close();
+    }
+  };
 
-  // Обработчик клика на кнопку
-  errorButton.addEventListener('click', closeErrorMessage);
-
-  // Обработчик клика на фон (за пределами блока с сообщением)
-  errorSection.addEventListener('click', (evt) => {
-    if (!evt.target.closest('.error__inner')) {
-      closeErrorMessage();
+  message.addEventListener('click', (evt) => {
+    if (!evt.target.closest('.success__inner')) {
+      close();
     }
   });
 
-  // Обработчик ESC
-  document.addEventListener('keydown', onErrorEscKeydown);
+  message.querySelector('.success__button').addEventListener('click', close);
+  document.removeEventListener('keydown', onFormEscKeydown);
+  document.addEventListener('keydown', onEsc);
 };
 
-// ФУНКЦИЯ УСПЕШНОЙ ОТПРАВКИ
+// Показать сообщение об ошибке
+const showErrorMessage = () => {
+  const template = document.querySelector('#error').content.cloneNode(true);
+  const message = template.querySelector('.error');
+  message.style.zIndex = '10000';
+  document.body.appendChild(message);
+
+  const close = () => {
+    message.remove();
+    // eslint-disable-next-line no-use-before-define
+    document.removeEventListener('keydown', onEsc);
+    // Возвращаем обработчик ESC для формы
+    document.addEventListener('keydown', onFormEscKeydown);
+  };
+
+  const onEsc = (evt) => {
+    if (isEscapeKey(evt)) {
+      close();
+    }
+  };
+
+  message.addEventListener('click', (evt) => {
+    if (!evt.target.closest('.error__inner')) {
+      close();
+    }
+  });
+
+  message.querySelector('.error__button').addEventListener('click', close);
+  document.removeEventListener('keydown', onFormEscKeydown);
+  document.addEventListener('keydown', onEsc);
+};
+
+// Успешная отправка
 const onFormSuccess = () => {
   closeImageEditor();
   showSuccessMessage();
 };
 
-// ФУНКЦИЯ ОШИБКИ ОТПРАВКИ
+// Ошибка отправки
 const onFormError = () => {
   unblockSubmitButton();
   showErrorMessage();
 };
 
-// ОБРАБОТЧИК ОТПРАВКИ ФОРМЫ
+// Отправка формы
 const onFormSubmit = (evt) => {
   evt.preventDefault();
 
-  const isValid = pristine.validate();
+  // Проверяем перед отправкой
+  updateValidation();
 
-  if (isValid) {
-    // Блокируем кнопку отправки
-    blockSubmitButton();
-
-    const formData = new FormData(form);
-
-    uploadData(
-      onFormSuccess,
-      onFormError,
-      'POST',
-      formData
-    );
+  if (hashtagError || commentError) {
+    // Показываем ошибки, но не отправляем
+    updateErrorUI();
+    return;
   }
+
+  blockSubmitButton();
+  const formData = new FormData(form);
+  uploadData(onFormSuccess, onFormError, 'POST', formData);
 };
 
-// ДОБАВЛЕНИЕ ВАЛИДАТОРОВ
-pristine.addValidator(
-  hashtagInput,
-  validateHashtags,
-  getHashtagErrorMessage
-);
+// Слушатели событий для валидации
+hashtagInput.addEventListener('input', () => {
+  updateValidation();
+});
 
-pristine.addValidator(
-  commentInput,
-  validateComment,
-  `Длина комментария не должна превышать ${MAX_COMMENT_LENGTH} символов`
-);
+commentInput.addEventListener('input', () => {
+  updateValidation();
+});
 
-// ВАЛИДАЦИЯ ПРИ ВВОДЕ
-const setupRealTimeValidation = () => {
-  hashtagInput.addEventListener('input', () => {
-    pristine.validate(hashtagInput);
-    updateSubmitButton();
-  });
-
-  commentInput.addEventListener('input', () => {
-    pristine.validate(commentInput);
-    updateSubmitButton();
-  });
-};
-
-// ДОБАВЛЕНИЕ ОБРАБОТЧИКОВ СОБЫТИЙ
+// Основные слушатели
 fileInput.addEventListener('change', onFileInputChange);
-cancelButton.addEventListener('click', onCancelButtonClick);
+cancelButton.addEventListener('click', closeImageEditor);
 form.addEventListener('submit', onFormSubmit);
 
-hashtagInput.addEventListener('keydown', onHashtagInputKeydown);
-commentInput.addEventListener('keydown', onCommentInputKeydown);
+// Предотвращение закрытия формы при фокусе
+hashtagInput.addEventListener('keydown', (evt) => {
+  if (isEscapeKey(evt)) {
+    evt.stopPropagation();
+  }
+});
 
-setupRealTimeValidation();
+commentInput.addEventListener('keydown', (evt) => {
+  if (isEscapeKey(evt)) {
+    evt.stopPropagation();
+  }
+});
 
+// Экспорты
 export { closeImageEditor, resetForm, isEscapeKey };
