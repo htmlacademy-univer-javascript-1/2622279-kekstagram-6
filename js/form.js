@@ -4,18 +4,18 @@ import { initImageEditor, resetImageEditor } from './image-editor.js';
 import { uploadData } from './fetch.js';
 import { showSelectedImage, resetPreview } from './preview.js';
 
-// Элементы DOM
-const form = document.querySelector('.img-upload__form');
-const fileInput = document.querySelector('.img-upload__input');
-const overlay = document.querySelector('.img-upload__overlay');
-const cancelButton = document.querySelector('.img-upload__cancel');
-const hashtagInput = document.querySelector('.text__hashtags');
-const commentInput = document.querySelector('.text__description');
-const body = document.body;
-const submitButton = document.querySelector('.img-upload__submit');
-
 // Константы
 const MAX_COMMENT_LENGTH = 140;
+
+// Элементы DOM
+const form = document.querySelector('.img-upload__form');
+const fileInput = form.querySelector('.img-upload__input');
+const overlay = form.querySelector('.img-upload__overlay');
+const cancelButton = form.querySelector('.img-upload__cancel');
+const hashtagInput = form.querySelector('.text__hashtags');
+const commentInput = form.querySelector('.text__description');
+const submitButton = form.querySelector('.img-upload__submit');
+const body = document.body;
 
 // Храним текущие ошибки
 let hashtagError = '';
@@ -168,29 +168,29 @@ const showSuccessMessage = () => {
   message.style.zIndex = '10000';
   document.body.appendChild(message);
 
-  const close = () => {
+  const onSuccessMessageClose = () => {
     message.remove();
-    // eslint-disable-next-line no-use-before-define
-    document.removeEventListener('keydown', onEsc);
+    document.removeEventListener('keydown', onSuccessMessageEscKeydown);
     // Возвращаем обработчик ESC для формы
     document.addEventListener('keydown', onFormEscKeydown);
   };
 
-  const onEsc = (evt) => {
+  function onSuccessMessageEscKeydown(evt) {
     if (isEscapeKey(evt)) {
-      close();
+      onSuccessMessageClose();
+    }
+  }
+
+  const onSuccessMessageClick = (evt) => {
+    if (!evt.target.closest('.success__inner')) {
+      onSuccessMessageClose();
     }
   };
 
-  message.addEventListener('click', (evt) => {
-    if (!evt.target.closest('.success__inner')) {
-      close();
-    }
-  });
-
-  message.querySelector('.success__button').addEventListener('click', close);
+  message.addEventListener('click', onSuccessMessageClick);
+  message.querySelector('.success__button').addEventListener('click', onSuccessMessageClose);
   document.removeEventListener('keydown', onFormEscKeydown);
-  document.addEventListener('keydown', onEsc);
+  document.addEventListener('keydown', onSuccessMessageEscKeydown);
 };
 
 // Показать сообщение об ошибке
@@ -200,39 +200,40 @@ const showErrorMessage = () => {
   message.style.zIndex = '10000';
   document.body.appendChild(message);
 
-  const close = () => {
+  const onErrorMessageClose = () => {
     message.remove();
-    // eslint-disable-next-line no-use-before-define
-    document.removeEventListener('keydown', onEsc);
+    document.removeEventListener('keydown', onErrorMessageEscKeydown);
     // Возвращаем обработчик ESC для формы
     document.addEventListener('keydown', onFormEscKeydown);
   };
 
-  const onEsc = (evt) => {
+  // Объявляем функцию перед использованием
+  function onErrorMessageEscKeydown(evt) {
     if (isEscapeKey(evt)) {
-      close();
+      onErrorMessageClose();
+    }
+  }
+
+  const onErrorMessageClick = (evt) => {
+    if (!evt.target.closest('.error__inner')) {
+      onErrorMessageClose();
     }
   };
 
-  message.addEventListener('click', (evt) => {
-    if (!evt.target.closest('.error__inner')) {
-      close();
-    }
-  });
-
-  message.querySelector('.error__button').addEventListener('click', close);
+  message.addEventListener('click', onErrorMessageClick);
+  message.querySelector('.error__button').addEventListener('click', onErrorMessageClose);
   document.removeEventListener('keydown', onFormEscKeydown);
-  document.addEventListener('keydown', onEsc);
+  document.addEventListener('keydown', onErrorMessageEscKeydown);
 };
 
 // Успешная отправка
-const onFormSuccess = () => {
+const onFormSubmitSuccess = () => {
   closeImageEditor();
   showSuccessMessage();
 };
 
 // Ошибка отправки
-const onFormError = () => {
+const onFormSubmitError = () => {
   unblockSubmitButton();
   showErrorMessage();
 };
@@ -248,18 +249,18 @@ const onFormSubmit = (evt) => {
     updateErrorUI();
   } else {
     blockSubmitButton();
-    uploadData(onFormSuccess, onFormError, 'POST', new FormData(form));
+    uploadData(onFormSubmitSuccess, onFormSubmitError, 'POST', new FormData(form));
   }
 };
 
 // Слушатели событий для валидации
-hashtagInput.addEventListener('input', () => {
+const onHashtagInput = () => {
   updateValidation();
-});
+};
 
-commentInput.addEventListener('input', () => {
+const onCommentInput = () => {
   updateValidation();
-});
+};
 
 // Основные слушатели
 fileInput.addEventListener('change', onFileInputChange);
@@ -267,17 +268,22 @@ cancelButton.addEventListener('click', closeImageEditor);
 form.addEventListener('submit', onFormSubmit);
 
 // Предотвращение закрытия формы при фокусе
-hashtagInput.addEventListener('keydown', (evt) => {
+const onHashtagInputKeydown = (evt) => {
   if (isEscapeKey(evt)) {
     evt.stopPropagation();
   }
-});
+};
 
-commentInput.addEventListener('keydown', (evt) => {
+const onCommentInputKeydown = (evt) => {
   if (isEscapeKey(evt)) {
     evt.stopPropagation();
   }
-});
+};
+
+hashtagInput.addEventListener('input', onHashtagInput);
+commentInput.addEventListener('input', onCommentInput);
+hashtagInput.addEventListener('keydown', onHashtagInputKeydown);
+commentInput.addEventListener('keydown', onCommentInputKeydown);
 
 // Экспорты
 export { closeImageEditor, resetForm };
